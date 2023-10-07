@@ -8,6 +8,7 @@ import java.util.ArrayList;
 public class Driver {
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
+		GUI gui = new GUI();
 		try {
 			Scanner sc = new Scanner(new File("src/proc.txt"));
 			String alg = sc.nextLine().toUpperCase(); // read the scheduling algorithm
