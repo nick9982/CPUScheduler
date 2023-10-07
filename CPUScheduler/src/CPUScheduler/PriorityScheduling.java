@@ -11,7 +11,7 @@ public class PriorityScheduling extends SchedulingAlgorithm {
 
       public PCB pickNextProcess() {
 		// TODO Auto-generated method stub
-    	  Collections.sort(readyQueue, (o1,o2) -> o1.getPriority() - o2.getPriority());
-    	  return readyQueue.get(0);
+    	  Collections.sort(cpuReadyQueue, (o1,o2) -> o1.getPriority() - o2.getPriority());
+    	  return cpuReadyQueue.get(0);
       }
 }

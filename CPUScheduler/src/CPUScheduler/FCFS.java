@@ -9,6 +9,6 @@ public class FCFS extends SchedulingAlgorithm {
 
       public PCB pickNextProcess() {
 		// TODO Auto-generated method stub
-    	  return readyQueue.get(0);
+    	  return cpuReadyQueue.get(0);
       }
 }
