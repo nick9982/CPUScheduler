@@ -130,7 +130,7 @@ public class PCB {
 	
 	public String toString() {
 		return "Process [name=" + name + ", id=" + id 
-			    + ", arrivalTime=" + arrivalTime + ", cpuBurst=" + cpuBurst 
+			    + ", arrivalTime=" + arrivalTime + ", cpuBurst=" + cpuBurst + ", I/O Burst="+IOBurst
 			    + ", priority=" + priority + "]";
 	}
 	

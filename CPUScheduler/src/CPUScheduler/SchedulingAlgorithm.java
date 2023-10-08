@@ -8,18 +8,24 @@ public abstract class SchedulingAlgorithm {
 	protected List<PCB> cpuReadyQueue; // ready queue of ready processes CPU bound
 	protected List<PCB> ioReadyQueue;
 	protected List<PCB> finishedProcs; // list of terminated processes
-	protected PCB curProcess; // current selected process by the scheduler
+	protected PCB curCPUProcess; // current selected process by the scheduler
+	protected PCB curIOProcess;
 	protected int systemTime; // system time or simulation time steps
+	public static boolean play;
 
 	public SchedulingAlgorithm(String name, List<PCB> queue) {
 		this.name = name;
 		this.allProcs = queue;
 		this.cpuReadyQueue = new ArrayList<>();
+		this.ioReadyQueue =  new ArrayList<>();
 		this.finishedProcs = new ArrayList<>();
 	}
 
 	public void schedule() {
-		// add code to complete the method
+		// continue if play selected or wait for next button
+		if(!play) {
+			//wait until 
+		}
 		System.out.println("Scheduler: " + name);
 		//while there are still processes
 		while (!allProcs.isEmpty() || !cpuReadyQueue.isEmpty()) {
@@ -29,47 +35,58 @@ public abstract class SchedulingAlgorithm {
 				if (proc.getArrivalTime() == systemTime)
 					cpuReadyQueue.add(proc);
 			allProcs.removeAll(cpuReadyQueue);//processes in ready queue have already arrived
-			curProcess = pickNextProcess();//implemented by algorithm depending on method
+			curCPUProcess = pickNextProcess();//implemented by algorithm depending on method
 			print();
-			if (curProcess.getStartTime() < 0) {
-				curProcess.setStartTime(systemTime);
+			if (curCPUProcess.getStartTime() < 0) {
+				curCPUProcess.setStartTime(systemTime);
 			}
-
-			CPU.execute(curProcess, 1);
+			
+			//CPU Queue
+			CPU.execute(curCPUProcess, 1);
 			for (PCB other : cpuReadyQueue) {
-				if (other != curProcess) {
+				if (other != curCPUProcess) {
 					other.increaseWaitingTime(1);
 				}
 			}
 			//I/O Queue 
+			//if(!ioReadyQueue.isEmpty())
+			//	IO.execute(ioReadyQueue.get(0));//I/O uses FCFS
 			
 			systemTime++;
 			
 			//Check if finished
-			if (curProcess.getCpuBurst() == 0) {
-				if(curProcess.getIOBurst() != 0) {//Still more work to do in IO
+			if (curCPUProcess.getCpuBurst() == 0) {
+				if(curCPUProcess.getIOBurst() != 0) {//Still more work to do in IO
 					//add to I/O queue and remove from CPU queue
+					System.out.println(curCPUProcess.getName()+" added to I/O queue");
+					ioReadyQueue.add(curCPUProcess);
+					cpuReadyQueue.remove(curCPUProcess);
 				}else {
-				curProcess.setFinishTime(systemTime);
-				cpuReadyQueue.remove(curProcess);
-				finishedProcs.add(curProcess);
-				System.out.println("Process " + curProcess.getName() + " finished at " + systemTime + ", TAT = "
-						+ curProcess.getTurnaroundTime() + ", WAT: " + curProcess.getWaitingTime());
+				curCPUProcess.setFinishTime(systemTime);
+				cpuReadyQueue.remove(curCPUProcess);
+				finishedProcs.add(curCPUProcess);
+				System.out.println("Process " + curCPUProcess.getName() + " finished at " + systemTime + ", TAT = "
+						+ curCPUProcess.getTurnaroundTime() + ", WAT: " + curCPUProcess.getWaitingTime());
 				}
 			}
-			if(curProcess.getIOBurst() == 0) {
-				if(curProcess.getCpuBurst()!=0) {//still more work to do in CPU
+			if(curCPUProcess.getIOBurst() == 0) {
+				if(ioReadyQueue.get(0).getCpuBurst()!=0 ) {//still more work to do in CPU
 					//add to CPU queue and remove from I/O queue
+					System.out.println(ioReadyQueue.get(0).getName()+" added to CPU queue");
+					cpuReadyQueue.add(ioReadyQueue.get(0));
+					ioReadyQueue.remove(ioReadyQueue.get(0));
 				}else {
-					curProcess.setFinishTime(systemTime);
-					cpuReadyQueue.remove(curProcess);
-					finishedProcs.add(curProcess);
-					System.out.println("Process " + curProcess.getName() + " finished at " + systemTime + ", TAT = "
-							+ curProcess.getTurnaroundTime() + ", WAT: " + curProcess.getWaitingTime());
+					curCPUProcess.setFinishTime(systemTime);
+					cpuReadyQueue.remove(curCPUProcess);
+					finishedProcs.add(curCPUProcess);
+					System.out.println("Process " + curCPUProcess.getName() + " finished at " + systemTime + ", TAT = "
+							+ curCPUProcess.getTurnaroundTime() + ", WAT: " + curCPUProcess.getWaitingTime());
 				}
 			}
 			System.out.println();
 		}
+		System.out.println("All processes terminated at system time " + systemTime );
+		print();
 	}
 
 	// Selects the next task using the appropriate scheduling algorithm
@@ -78,9 +95,13 @@ public abstract class SchedulingAlgorithm {
 	// print simulation step
 	public void print() {
 		// add code to complete the method
-		System.out.println("CPU: " + curProcess == null ? " idle " : curProcess.toString());
-		System.out.println("Ready queue: [");
+		System.out.println("CPU: " + curCPUProcess == null ? " idle " : curCPUProcess.toString());
+		System.out.println("CPU ready queue: [");
 		for (PCB proc : cpuReadyQueue) {
+			System.out.print(proc.getName() + " ");
+		}
+		System.out.println("\nI/O ready queue: [");
+		for (PCB proc : ioReadyQueue) {
 			System.out.print(proc.getName() + " ");
 		}
 		System.out.println("]");
