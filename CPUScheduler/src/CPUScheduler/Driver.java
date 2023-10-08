@@ -6,6 +6,8 @@ import java.util.List;
 import java.util.ArrayList;
 
 public class Driver {
+	int simulationTime, quantumTime;
+	boolean autoMode;
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
 		GUI gui = new GUI();
@@ -21,7 +23,7 @@ public class Driver {
 				int arrivalTime = Integer.parseInt(arr[1]);
 				int cpuBurst = Integer.parseInt(arr[2]);
 				int priority = Integer.parseInt(arr [3]);
-				int IOBurst = 0; //replace with IOBurst, 0 for now
+				int IOBurst = 1; //replace with IOBurst, 0 for now
 				PCB proc = new PCB(name, id++, arrivalTime, cpuBurst, priority, IOBurst);
 				allProcs.add(proc);
 			}

@@ -204,12 +204,19 @@ public class GUI implements ActionListener{
 		
 		else if(e.getSource() == this.PlayAndPause) {
 			//step through each time step at rate of FPS. 1 time unit is one frame.
-			if(PlayAndPause.getText() == "⏵")PlayAndPause.setText("⏸");
-			else PlayAndPause.setText("⏵");
+			if(PlayAndPause.getText() == "⏵") {
+				SchedulingAlgorithm.play = true;
+				PlayAndPause.setText("⏸");
+			}
+			else {
+				SchedulingAlgorithm.play = false;
+				PlayAndPause.setText("⏵");
+			}
 		}
 		
 		else if(e.getSource() == this.Next) {
 			//moves ahead one unit of time
+			
 		}
 	}
 	
