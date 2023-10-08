@@ -7,17 +7,21 @@ public class PCB {
 	private int id;          // process id
 	private int arrivalTime; // arrival time of the process
 	private int cpuBurst;    // CPU burst length in unit time
+	private int IOBurst;
+	private boolean CPUBound;
+	private boolean IOBound;
 	private int priority;    // priority level of the process
 	// the stats of the process execution
 	private int startTime, finishTime, turnaroundTime, waitingTime;
 
 	// constructor
-	public PCB(String name, int id, int arrivalTime, int cpuBurst, int priority) {
+	public PCB(String name, int id, int arrivalTime, int cpuBurst, int priority, int IOBurst) {
 		super();
 		this.name = name;
 		this.id = id;
 		this.arrivalTime = arrivalTime;
 		this.cpuBurst = cpuBurst;
+		this.IOBurst = IOBurst;
 		this.priority = priority;
 		this.startTime = -1;
 		this.finishTime = -1;
@@ -53,6 +57,30 @@ public class PCB {
 
 	public void setCpuBurst(int cpuBurst) {
 		this.cpuBurst = cpuBurst;
+	}
+
+	public int getIOBurst() {
+		return IOBurst;
+	}
+
+	public void setIOBurst(int iOBurst) {
+		IOBurst = iOBurst;
+	}
+
+	public boolean isCPUBound() {
+		return CPUBound;
+	}
+
+	public void setCPUBound(boolean cPUBound) {
+		CPUBound = cPUBound;
+	}
+
+	public boolean isIOBound() {
+		return IOBound;
+	}
+
+	public void setIOBound(boolean iOBound) {
+		IOBound = iOBound;
 	}
 
 	public int getPriority() {

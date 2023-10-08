@@ -10,7 +10,7 @@ public class SJF extends SchedulingAlgorithm {
 
       public PCB pickNextProcess() {
 		// TODO Auto-generated method stub
-    	  Collections.sort(readyQueue, (o1,o2) -> o1.getCpuBurst() - o2.getCpuBurst());
-    	  return readyQueue.get(0);
+    	  Collections.sort(cpuReadyQueue, (o1,o2) -> o1.getCpuBurst() - o2.getCpuBurst());
+    	  return cpuReadyQueue.get(0);
       }
 }
