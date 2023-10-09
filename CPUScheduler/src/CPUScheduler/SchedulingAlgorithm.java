@@ -1,24 +1,27 @@
 package CPUScheduler;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 public abstract class SchedulingAlgorithm {
 	protected String name; // scheduling algorithm name
-	protected List<PCB> allProcs; // the initial list of processes
-	protected List<PCB> cpuReadyQueue; // ready queue of ready processes CPU bound
-	protected List<PCB> ioReadyQueue;
-	protected List<PCB> finishedProcs; // list of terminated processes
+	protected ArrayList<PCB> allProcs; // the initial list of processes
+	protected ArrayList<PCB> cpuReadyQueue; // ready queue of ready processes CPU bound
+	protected ArrayList<PCB> ioReadyQueue;
+	protected ArrayList<PCB> finishedProcs; // list of terminated processes
 	protected PCB curCPUProcess; // current selected process by the scheduler
 	protected PCB curIOProcess;
 	protected int systemTime; // system time or simulation time steps
 	public static boolean play;
+	protected GUI gui;
 
-	public SchedulingAlgorithm(String name, List<PCB> queue) {
+	public SchedulingAlgorithm(String name, ArrayList<PCB> queue, GUI gui) {
 		this.name = name;
 		this.allProcs = queue;
 		this.cpuReadyQueue = new ArrayList<>();
 		this.ioReadyQueue =  new ArrayList<>();
 		this.finishedProcs = new ArrayList<>();
+		this.gui = gui;
 	}
 
 	public void schedule() {
@@ -34,9 +37,17 @@ public abstract class SchedulingAlgorithm {
 			for (PCB proc : allProcs)//when the process arrives add it to queue
 				if (proc.getArrivalTime() == systemTime)
 					cpuReadyQueue.add(proc);
+			
 			allProcs.removeAll(cpuReadyQueue);//processes in ready queue have already arrived
-			curCPUProcess = pickNextProcess();//implemented by algorithm depending on method
-			print();
+			gui.ReadyQueue.setProcesses(cpuReadyQueue);
+			if(CPU.isAvailable) {
+				curCPUProcess = pickNextProcess();//implemented by algorithm depending on method
+
+				cpuReadyQueue.remove(curCPUProcess);
+				gui.ReadyQueue.setProcesses(cpuReadyQueue);
+				gui.CPU1.setProcesses(new ArrayList<PCB>(Arrays.asList(curCPUProcess)));
+				print();
+			}
 			if (curCPUProcess.getStartTime() < 0) {
 				curCPUProcess.setStartTime(systemTime);
 			}
@@ -60,24 +71,28 @@ public abstract class SchedulingAlgorithm {
 					//add to I/O queue and remove from CPU queue
 					System.out.println(curCPUProcess.getName()+" added to I/O queue");
 					ioReadyQueue.add(curCPUProcess);
-					cpuReadyQueue.remove(curCPUProcess);
+					gui.WaitingQueue.setProcesses(ioReadyQueue);
 				}else {
-				curCPUProcess.setFinishTime(systemTime);
-				cpuReadyQueue.remove(curCPUProcess);
-				finishedProcs.add(curCPUProcess);
-				System.out.println("Process " + curCPUProcess.getName() + " finished at " + systemTime + ", TAT = "
-						+ curCPUProcess.getTurnaroundTime() + ", WAT: " + curCPUProcess.getWaitingTime());
+					curCPUProcess.setFinishTime(systemTime);
+					//cpuReadyQueue.remove(curCPUProcess);
+					//gui.ReadyQueue.setProcesses(cpuReadyQueue);
+					finishedProcs.add(curCPUProcess);
+					System.out.println("Process " + curCPUProcess.getName() + " finished at " + systemTime + ", TAT = "
+							+ curCPUProcess.getTurnaroundTime() + ", WAT: " + curCPUProcess.getWaitingTime());
 				}
 			}
 			if(curCPUProcess.getIOBurst() == 0) {
 				if(ioReadyQueue.get(0).getCpuBurst()!=0 ) {//still more work to do in CPU
 					//add to CPU queue and remove from I/O queue
-					System.out.println(ioReadyQueue.get(0).getName()+" added to CPU queue");
 					cpuReadyQueue.add(ioReadyQueue.get(0));
+					gui.ReadyQueue.setProcesses(cpuReadyQueue);
 					ioReadyQueue.remove(ioReadyQueue.get(0));
+					gui.WaitingQueue.setProcesses(ioReadyQueue);
 				}else {
 					curCPUProcess.setFinishTime(systemTime);
 					cpuReadyQueue.remove(curCPUProcess);
+					gui.ReadyQueue.setProcesses(cpuReadyQueue);
+					System.out.println(ioReadyQueue.toString());
 					finishedProcs.add(curCPUProcess);
 					System.out.println("Process " + curCPUProcess.getName() + " finished at " + systemTime + ", TAT = "
 							+ curCPUProcess.getTurnaroundTime() + ", WAT: " + curCPUProcess.getWaitingTime());

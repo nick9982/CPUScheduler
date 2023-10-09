@@ -36,6 +36,11 @@ public class GUI implements ActionListener{
 	private JLabel SystemTime, Throughput, AvgTurnover, AvgWait;
 	private JFrame window;
 	private JScrollPane scroller;
+	/*public ArrayList<Integer> CPUReadyQueueProcs = new ArrayList<Integer>();
+	public ArrayList<Integer> IOReadyQueueProcs = new ArrayList<Integer>();
+	public ArrayList<Integer> CPU1Procs = new ArrayList<Integer>();
+	public ArrayList<Integer> IODeviceProcs = new ArrayList<Integer>();*/
+	public Block ReadyQueue, WaitingQueue, CPU1, IO; // call the functions directly on the block interface from outside of GUI
 	
 	public GUI() {
 		window = new JFrame("CPU Scheduler");
@@ -146,7 +151,6 @@ public class GUI implements ActionListener{
 		gbc.gridx = 4;
 		gbc.gridheight = 3;
 		gbc.gridwidth = 21;
-		//scroller.setSize(400, 1500);
 		window.add(scroller, gbc);
 
 		gbc.insets = new Insets(0, 30, 0, 0);
@@ -155,30 +159,28 @@ public class GUI implements ActionListener{
 		gbc.gridy = 2;
 		gbc.gridx = 0;
 		gbc.gridwidth = 3;
-		ArrayList<Integer> processes = new ArrayList<Integer>(Arrays.asList(1, 2, 3, 4));
-		ArrayList<Integer> singleProcess = new ArrayList<Integer>(Arrays.asList(5));
-		Block ReadyQueue = new Block(Color.GRAY, 740, 100, "Ready Queue", false, false);
-		ReadyQueue.setProcesses(processes);
+		ReadyQueue = new Block(Color.GRAY, 740, 100, "Ready Queue", false, false);
+		ReadyQueue.setProcesses(new ArrayList<PCB>());
 		window.add(ReadyQueue, gbc);
 		
 		gbc.insets = new Insets(0, 6, 0, 0);
 		gbc.gridx = 3;
 		gbc.gridwidth=1;
-		Block CPU1 = new Block(Color.magenta, 100, 100, "CPU1", true, true);
-		CPU1.setProcesses(singleProcess);
+		CPU1 = new Block(Color.magenta, 100, 100, "CPU1", true, true);
+		CPU1.setProcesses(new ArrayList<PCB>());
 		window.add(CPU1, gbc);
 
 		gbc.insets = new Insets(-30, 30, 0, 0);
 		gbc.gridy = 3;
 		gbc.gridx = 0;
-		Block IO = new Block(Color.green, 100, 100, "I/O Device", true, true);
-		IO.setProcesses(singleProcess);
+		IO = new Block(Color.green, 100, 100, "I/O Device", true, true);
+		IO.setProcesses(new ArrayList<PCB>());
 		window.add(IO, gbc);
 
 		gbc.insets = new Insets(-30, -134, 0, 0);
 		gbc.gridx = 1;
-		Block WaitingQueue = new Block(Color.cyan, 740, 100, "Waiting Queue", true, false);
-		WaitingQueue.setProcesses(processes);
+		WaitingQueue = new Block(Color.cyan, 740, 100, "Waiting Queue", true, false);
+		WaitingQueue.setProcesses(new ArrayList<PCB>());
 		window.add(WaitingQueue, gbc);
 		
 		ImportFile.addActionListener(this);
@@ -186,7 +188,7 @@ public class GUI implements ActionListener{
 		Next.addActionListener(this);
 		window.setVisible(true);
 	}
-
+	
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		// TODO Auto-generated method stub
@@ -223,9 +225,9 @@ public class GUI implements ActionListener{
 	class Block extends JPanel{
 		private JLabel title;
 		int x, y;
-		private int Processes = 0;
+		private int NumberOfProcesses = 0;
 		private boolean ProcessesStackFromLeft, capacityOfOne;
-		ArrayList<Integer> processNumbers = new ArrayList<Integer>();
+		ArrayList<PCB> Processes = new ArrayList<PCB>();
 		private JLabel[] labels;
 		
 		public Block(Color c, int x, int y, String title, boolean ProcessesStackFromLeft, boolean capacityOfOne) {
@@ -244,17 +246,17 @@ public class GUI implements ActionListener{
 			add(this.title);
 		}
 		
-		public void setProcesses(ArrayList<Integer> processNumbers) {
-			this.Processes = processNumbers.size();
-			this.processNumbers = processNumbers;
+		public void setProcesses(ArrayList<PCB> processes) {
+			this.Processes = processes;
+			this.NumberOfProcesses = processes.size();
 			resetJLabels();
 		}
 		
 		protected void resetJLabels() {
 			removeAll();
-			labels = new JLabel[this.Processes];
-			if(capacityOfOne){
-				JLabel label = new JLabel("P" + processNumbers.get(0));
+			labels = new JLabel[this.NumberOfProcesses];
+			if(capacityOfOne && NumberOfProcesses > 0){
+				JLabel label = new JLabel("P" + Processes.get(0).getId());
 				label.setHorizontalAlignment(SwingConstants.CENTER);
 				label.setVerticalAlignment(SwingConstants.CENTER);
 				label.setOpaque(true);
@@ -265,7 +267,7 @@ public class GUI implements ActionListener{
 				add(label);
 			}
 			else {
-				for(int i = 0; i < this.Processes; i++) {
+				for(int i = 0; i < this.NumberOfProcesses; i++) {
 					int circleY = 42;
 		
 					int circleX = 24 + i * 60;
@@ -273,7 +275,7 @@ public class GUI implements ActionListener{
 						circleX = this.x - 55 - i * 60;
 					}
 					
-					JLabel label = new JLabel("P"+processNumbers.get(i));
+					JLabel label = new JLabel("P"+Processes.get(i).getId());
 					label.setHorizontalAlignment(SwingConstants.CENTER);
 					label.setVerticalAlignment(SwingConstants.CENTER);
 					label.setOpaque(true);
@@ -294,24 +296,27 @@ public class GUI implements ActionListener{
 			super.paintComponent(g);
 
 			setSize(this.x, this.y);
-			Graphics2D g2d = (Graphics2D) g;
+			//Graphics2D g2d = (Graphics2D) g;
 			int CircleDiameter = 50;
 			int x = 10;
 			
-			if(capacityOfOne) {
+			if(capacityOfOne && NumberOfProcesses != 0) {
 				g.setColor(Color.BLUE);
 				g.fillOval(this.x/4, this.y/4+2, CircleDiameter, CircleDiameter);
 			}
 			else if(ProcessesStackFromLeft) {
-				for(int i = 0; i < Processes; i++) {
+				System.out.println("method called");
+				for(int i = 0; i < this.NumberOfProcesses; i++) {
 					int circleX = x + (i*(CircleDiameter+10));
 					
 					g.setColor(Color.BLUE);
 					g.fillOval(circleX, 27, CircleDiameter, CircleDiameter);
+					System.out.println(circleX);
+					System.out.println(i);
 				}
 			}
 			else {
-				for(int i = Processes; i > 0; i--) {
+				for(int i = this.NumberOfProcesses; i > 0; i--) {
 					int circleX = getWidth() - x - (i*(CircleDiameter+10));
 					
 					g.setColor(Color.BLUE);

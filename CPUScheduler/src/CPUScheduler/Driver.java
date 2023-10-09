@@ -14,7 +14,7 @@ public class Driver {
 		try {
 			Scanner sc = new Scanner(new File("src/proc.txt"));
 			String alg = sc.nextLine().toUpperCase(); // read the scheduling algorithm
-			List<PCB> allProcs = new ArrayList<>();
+			ArrayList<PCB> allProcs = new ArrayList<>();
 			int id = 0;
 			while(sc.hasNextLine()) {
 				String line = sc.nextLine();
@@ -31,12 +31,12 @@ public class Driver {
 			SchedulingAlgorithm scheduler = null;
 			switch(alg) {
 			case "FCFS":
-				scheduler = new FCFS(allProcs); break;
+				scheduler = new FCFS(allProcs, gui); break;
 			case "SJF":
-				scheduler = new SJF(allProcs);
+				scheduler = new SJF(allProcs, gui);
 				break;
 			case "PS":
-				scheduler = new PriorityScheduling(allProcs);
+				scheduler = new PriorityScheduling(allProcs, gui);
 				break;
 			}
 			scheduler.schedule();

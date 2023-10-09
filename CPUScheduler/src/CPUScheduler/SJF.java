@@ -1,10 +1,11 @@
 package CPUScheduler;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 public class SJF extends SchedulingAlgorithm {
-      public SJF (List<PCB> queue) {
-		super("SJF", queue);
+      public SJF (ArrayList<PCB> queue, GUI gui) {
+		super("SJF", queue, gui);
 	}
 
 

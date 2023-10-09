@@ -1,11 +1,12 @@
 package CPUScheduler;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
 public class PriorityScheduling extends SchedulingAlgorithm {
-      public PriorityScheduling (List<PCB> queue) {
-		super("Priority Scheduling", queue);
+      public PriorityScheduling (ArrayList<PCB> queue, GUI gui) {
+		super("Priority Scheduling", queue, gui);
 	}
 
 

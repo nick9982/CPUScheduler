@@ -1,9 +1,10 @@
 package CPUScheduler;
+import java.util.ArrayList;
 import java.util.List;
 
 public class FCFS extends SchedulingAlgorithm {
-      public FCFS(List<PCB> queue) {
-		super("FCFS", queue);
+      public FCFS(ArrayList<PCB> queue, GUI gui) {
+		super("FCFS", queue, gui);
 	}
 
 
