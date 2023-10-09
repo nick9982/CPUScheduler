@@ -161,7 +161,7 @@ public class GUI implements ActionListener{
 		ReadyQueue.setProcesses(processes);
 		window.add(ReadyQueue, gbc);
 		
-		gbc.insets = new Insets(0, 7, 0, 0);
+		gbc.insets = new Insets(0, 6, 0, 0);
 		gbc.gridx = 3;
 		gbc.gridwidth=1;
 		Block CPU1 = new Block(Color.magenta, 100, 100, "CPU1", true, true);
@@ -175,7 +175,7 @@ public class GUI implements ActionListener{
 		IO.setProcesses(singleProcess);
 		window.add(IO, gbc);
 
-		gbc.insets = new Insets(-30, -133, 0, 0);
+		gbc.insets = new Insets(-30, -134, 0, 0);
 		gbc.gridx = 1;
 		Block WaitingQueue = new Block(Color.cyan, 740, 100, "Waiting Queue", true, false);
 		WaitingQueue.setProcesses(processes);
