@@ -1,4 +1,7 @@
 package CPUScheduler;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Arrays;
 
 public class PCB {
 
@@ -6,25 +9,28 @@ public class PCB {
 	private String name;     // process name
 	private int id;          // process id
 	private int arrivalTime; // arrival time of the process
-	private int cpuBurst;    // CPU burst length in unit time
+	private int cpuBurst;
 	private int IOBurst;
-	private boolean CPUBound;
-	private boolean IOBound;
+	private int arrIndex = 0;//Where the current execution of the process is in list
+	//list of burst time for going back and forth odd = cpu burst, even = i/o burst
+	private ArrayList<Integer> burstList = new ArrayList<Integer>();
 	private int priority;    // priority level of the process
 	// the stats of the process execution
 	private int startTime, finishTime, turnaroundTime, waitingTime;
 
 	// constructor
-	public PCB(String name, int id, int arrivalTime, int cpuBurst, int priority, int IOBurst) {
+	public PCB(String name, int id, int arrivalTime, int priority, ArrayList<Integer> burstList) {
 		super();
 		this.name = name;
 		this.id = id;
 		this.arrivalTime = arrivalTime;
-		this.cpuBurst = cpuBurst;
-		this.IOBurst = IOBurst;
+		this.burstList = burstList;
 		this.priority = priority;
 		this.startTime = -1;
 		this.finishTime = -1;
+		this.cpuBurst = burstList.get(0);
+		if(burstList.size()>1)//if there's I/O set IOBurst, else ignore
+			this.IOBurst = burstList.get(1);
 	}
 	
 	public String getName() {
@@ -65,22 +71,6 @@ public class PCB {
 
 	public void setIOBurst(int iOBurst) {
 		IOBurst = iOBurst;
-	}
-
-	public boolean isCPUBound() {
-		return CPUBound;
-	}
-
-	public void setCPUBound(boolean cPUBound) {
-		CPUBound = cPUBound;
-	}
-
-	public boolean isIOBound() {
-		return IOBound;
-	}
-
-	public void setIOBound(boolean iOBound) {
-		IOBound = iOBound;
 	}
 
 	public int getPriority() {
@@ -133,5 +123,27 @@ public class PCB {
 			    + ", arrivalTime=" + arrivalTime + ", cpuBurst=" + cpuBurst + ", I/O Burst="+IOBurst
 			    + ", priority=" + priority + "]";
 	}
-	
+
+	public void insertBurstList(int burst) {
+		this.burstList.add(burst);
+	}
+
+	public int getBurstListNum(int index) {
+		try {//if there is a burst time in list return that, else return 0
+		return this.burstList.get(index); 
+		}catch(IndexOutOfBoundsException e) {
+			return 0;
+		}
+	}
+	public void setBurstListNum(int index, int num) {
+		this.burstList.set(index, num); 
+	}
+
+	public int getArrIndex() {
+		return arrIndex;
+	}
+
+	public void setArrIndex(int arrIndex) {
+		this.arrIndex = arrIndex;
+	}
 } 

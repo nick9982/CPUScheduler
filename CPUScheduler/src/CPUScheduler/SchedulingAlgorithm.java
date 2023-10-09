@@ -10,7 +10,7 @@ public abstract class SchedulingAlgorithm {
 	protected ArrayList<PCB> ioReadyQueue;
 	protected ArrayList<PCB> finishedProcs; // list of terminated processes
 	protected PCB curCPUProcess; // current selected process by the scheduler
-	protected PCB curIOProcess;
+	protected PCB curIOProcess;	//current selected process for I/O
 	protected int systemTime; // system time or simulation time steps
 	public static boolean play;
 	protected GUI gui;
@@ -39,15 +39,15 @@ public abstract class SchedulingAlgorithm {
 					cpuReadyQueue.add(proc);
 			
 			allProcs.removeAll(cpuReadyQueue);//processes in ready queue have already arrived
-			gui.ReadyQueue.setProcesses(cpuReadyQueue);
-			if(CPU.isAvailable) {
-				curCPUProcess = pickNextProcess();//implemented by algorithm depending on method
-
-				cpuReadyQueue.remove(curCPUProcess);
-				gui.ReadyQueue.setProcesses(cpuReadyQueue);
-				gui.CPU1.setProcesses(new ArrayList<PCB>(Arrays.asList(curCPUProcess)));
-				print();
-			}
+			gui.ReadyQueue.setProcesses(new ArrayList<PCB>(cpuReadyQueue.subList(1,cpuReadyQueue.size())));
+			curCPUProcess = pickNextProcess();//implemented by algorithm depending on method
+			
+			//This caused the CPU to prematurely pick the next process in the queue 
+			//cpuReadyQueue.remove(curCPUProcess);
+			gui.ReadyQueue.setProcesses(new ArrayList<PCB>(cpuReadyQueue.subList(1,cpuReadyQueue.size())));
+			gui.CPU1.setProcesses(new ArrayList<PCB>(Arrays.asList(curCPUProcess)));
+			print();
+				
 			if (curCPUProcess.getStartTime() < 0) {
 				curCPUProcess.setStartTime(systemTime);
 			}
@@ -60,8 +60,9 @@ public abstract class SchedulingAlgorithm {
 				}
 			}
 			//I/O Queue 
-			//if(!ioReadyQueue.isEmpty())
-			//	IO.execute(ioReadyQueue.get(0));//I/O uses FCFS
+			//if(!ioReadyQueue.isEmpty()){
+			//	IO.execute(ioReadyQueue.get(0),1);//I/O uses FCFS
+			//}
 			
 			systemTime++;
 			
@@ -69,21 +70,34 @@ public abstract class SchedulingAlgorithm {
 			if (curCPUProcess.getCpuBurst() == 0) {
 				if(curCPUProcess.getIOBurst() != 0) {//Still more work to do in IO
 					//add to I/O queue and remove from CPU queue
+					//if it needs to go do more CPU work after I/O, set next CPU Burst, else keep 0
+					if(curCPUProcess.getBurstListNum(curCPUProcess.getArrIndex()+2)!=0) {
+						curCPUProcess.setCpuBurst(curCPUProcess.getBurstListNum(curCPUProcess.getArrIndex()+2));
+						curCPUProcess.setArrIndex(curCPUProcess.getArrIndex()+1);
+						System.out.println("Set cpu burst to " + curCPUProcess.getCpuBurst());
+					}
 					System.out.println(curCPUProcess.getName()+" added to I/O queue");
 					ioReadyQueue.add(curCPUProcess);
+					cpuReadyQueue.remove(curCPUProcess);
 					gui.WaitingQueue.setProcesses(ioReadyQueue);
 				}else {
 					curCPUProcess.setFinishTime(systemTime);
-					//cpuReadyQueue.remove(curCPUProcess);
-					//gui.ReadyQueue.setProcesses(cpuReadyQueue);
+					cpuReadyQueue.remove(curCPUProcess);
+					gui.ReadyQueue.setProcesses(cpuReadyQueue);
 					finishedProcs.add(curCPUProcess);
 					System.out.println("Process " + curCPUProcess.getName() + " finished at " + systemTime + ", TAT = "
 							+ curCPUProcess.getTurnaroundTime() + ", WAT: " + curCPUProcess.getWaitingTime());
 				}
 			}
-			if(curCPUProcess.getIOBurst() == 0) {
+			if(!ioReadyQueue.isEmpty()&&ioReadyQueue.get(0).getIOBurst() == 0) {
 				if(ioReadyQueue.get(0).getCpuBurst()!=0 ) {//still more work to do in CPU
 					//add to CPU queue and remove from I/O queue
+					//if it needs to go do more I/O work after CPU, set next I/O Burst, else keep 0
+					if(ioReadyQueue.get(0).getBurstListNum(ioReadyQueue.get(0).getArrIndex()+2)!=0) {
+						ioReadyQueue.get(0).setCpuBurst(ioReadyQueue.get(0).getBurstListNum(ioReadyQueue.get(0).getArrIndex()+2));
+						ioReadyQueue.get(0).setArrIndex(ioReadyQueue.get(0).getArrIndex()+1);
+						System.out.println("Set I/O burst to " + ioReadyQueue.get(0).getCpuBurst());
+					}
 					cpuReadyQueue.add(ioReadyQueue.get(0));
 					gui.ReadyQueue.setProcesses(cpuReadyQueue);
 					ioReadyQueue.remove(ioReadyQueue.get(0));

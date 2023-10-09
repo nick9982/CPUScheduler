@@ -23,8 +23,11 @@ public class Driver {
 				int arrivalTime = Integer.parseInt(arr[1]);
 				int cpuBurst = Integer.parseInt(arr[2]);
 				int priority = Integer.parseInt(arr [3]);
-				int IOBurst = 1; //replace with IOBurst, 0 for now
-				PCB proc = new PCB(name, id++, arrivalTime, cpuBurst, priority, IOBurst);
+				ArrayList<Integer> burstList = new ArrayList<Integer>();
+				burstList.add(2);
+				burstList.add(1);
+				burstList.add(3);
+				PCB proc = new PCB(name, id++, arrivalTime, priority, burstList);
 				allProcs.add(proc);
 			}
 			
