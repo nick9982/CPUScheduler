@@ -10,8 +10,10 @@ import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Scanner;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -41,6 +43,9 @@ public class GUI implements ActionListener{
 	public ArrayList<Integer> CPU1Procs = new ArrayList<Integer>();
 	public ArrayList<Integer> IODeviceProcs = new ArrayList<Integer>();*/
 	public Block ReadyQueue, WaitingQueue, CPU1, IO; // call the functions directly on the block interface from outside of GUI
+	private boolean isPlaying = false;
+	private int NumberOfSteps = 0; // number of times "Next" has been clicked
+	SchedulingLoop SchedLoop = null;
 	
 	public GUI() {
 		window = new JFrame("CPU Scheduler");
@@ -201,24 +206,68 @@ public class GUI implements ActionListener{
 				File file = chooser.getSelectedFile();
 				
 				//Process the file, it is text input.
+				try {
+					if(SchedLoop != null)
+					{
+						SchedLoop.isFinished = true;
+						SchedLoop.isPlaying = false;
+						PlayAndPause.setText("⏵");
+						SchedLoop.NumberOfSteps = 0;
+					}
+					Scanner sc = new Scanner(new File("src/proc.txt"));
+					String alg = sc.nextLine().toUpperCase(); // read the scheduling algorithm
+					ArrayList<PCB> allProcs = new ArrayList<>();
+					int id = 0;
+					while(sc.hasNextLine()) {
+						String line = sc.nextLine();
+						String[] arr = line.split(",\\s*");
+						String name = arr[0];
+						int arrivalTime = Integer.parseInt(arr[1]);
+						int priority = Integer.parseInt(arr [2]);
+						PCB proc = new PCB(name, id++, arrivalTime, priority);
+						for(int i = arr.length-1; i >= 3; i--) {
+							proc.pushBurstTimes(Integer.parseInt(arr[i]));
+						}
+						allProcs.add(proc);
+					}
+					sc.close();
+					
+					SchedulingAlgorithm scheduler = null;
+					switch(alg) {
+					case "FCFS":
+						scheduler = new FCFS(allProcs, this); break;
+					case "SJF":
+						scheduler = new SJF(allProcs, this);
+						break;
+					case "PS":
+						scheduler = new PriorityScheduling(allProcs, this);
+						break;
+					}
+					//scheduler.schedule();
+					SchedLoop = new SchedulingLoop(scheduler);
+					SchedLoop.start();
+				} catch (FileNotFoundException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
 			}
 		}
 		
 		else if(e.getSource() == this.PlayAndPause) {
 			//step through each time step at rate of FPS. 1 time unit is one frame.
 			if(PlayAndPause.getText() == "⏵") {
-				SchedulingAlgorithm.play = true;
+				SchedLoop.setIsPlaying(true);
 				PlayAndPause.setText("⏸");
 			}
 			else {
-				SchedulingAlgorithm.play = false;
+				SchedLoop.setIsPlaying(false);
 				PlayAndPause.setText("⏵");
 			}
 		}
-		
 		else if(e.getSource() == this.Next) {
 			//moves ahead one unit of time
-			
+			this.NumberOfSteps++;
+			SchedLoop.setNumberOfSteps(this.NumberOfSteps);
 		}
 	}
 	
@@ -323,6 +372,43 @@ public class GUI implements ActionListener{
 					g.fillOval(circleX, 27, CircleDiameter, CircleDiameter);
 				}
 			}
+		}
+	}
+	
+	public class SchedulingLoop extends Thread {
+		SchedulingAlgorithm scheduler;
+		private volatile boolean isPlaying = false, isFinished = false;
+		private volatile int NumberOfSteps = 0;
+		
+		public SchedulingLoop(SchedulingAlgorithm sa) {
+			scheduler = sa;
+		}
+		
+		@Override
+		public void run() {
+			while(!isFinished) { //tmp eventually while scheduling not finished
+				//System.out.println(isPlaying);
+				while(isPlaying) {
+					isFinished = scheduler.schedule();
+					if(isFinished) break;
+				}
+				while(NumberOfSteps-- > 0) {
+					isFinished = scheduler.schedule();
+					if(isFinished) break;
+				}
+			}
+		}
+		
+		public void setNumberOfSteps(int x) {
+			NumberOfSteps = x;
+		}
+		
+		public void setIsPlaying(boolean x) {
+			isPlaying = x;
+		}
+		
+		public void setIsFinished(boolean x) {
+			isFinished = x;
 		}
 	}
 }
