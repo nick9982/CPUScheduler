@@ -305,14 +305,14 @@ public class GUI implements ActionListener{
 				g.fillOval(this.x/4, this.y/4+2, CircleDiameter, CircleDiameter);
 			}
 			else if(ProcessesStackFromLeft) {
-				System.out.println("method called");
+				//System.out.println("method called");
 				for(int i = 0; i < this.NumberOfProcesses; i++) {
 					int circleX = x + (i*(CircleDiameter+10));
 					
 					g.setColor(Color.BLUE);
 					g.fillOval(circleX, 27, CircleDiameter, CircleDiameter);
-					System.out.println(circleX);
-					System.out.println(i);
+					//System.out.println(circleX);
+					//System.out.println(i);
 				}
 			}
 			else {
