@@ -21,13 +21,11 @@ public class Driver {
 				String[] arr = line.split(",\\s*");
 				String name = arr[0];
 				int arrivalTime = Integer.parseInt(arr[1]);
-				int cpuBurst = Integer.parseInt(arr[2]);
-				int priority = Integer.parseInt(arr [3]);
-				ArrayList<Integer> burstList = new ArrayList<Integer>();
-				burstList.add(2);
-				burstList.add(1);
-				burstList.add(3);
-				PCB proc = new PCB(name, id++, arrivalTime, priority, burstList);
+				int priority = Integer.parseInt(arr [2]);
+				PCB proc = new PCB(name, id++, arrivalTime, priority);
+				for(int i = arr.length-1; i >= 3; i--) {
+					proc.pushBurstTimes(Integer.parseInt(arr[i]));
+				}
 				allProcs.add(proc);
 			}
 			

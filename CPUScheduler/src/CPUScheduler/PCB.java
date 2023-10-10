@@ -1,5 +1,6 @@
 package CPUScheduler;
 import java.util.List;
+import java.util.Stack;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -17,9 +18,9 @@ public class PCB {
 	private int priority;    // priority level of the process
 	// the stats of the process execution
 	private int startTime, finishTime, turnaroundTime, waitingTime;
-
+	private Stack<Integer> BurstTimes = new Stack<Integer>();
 	// constructor
-	public PCB(String name, int id, int arrivalTime, int priority, ArrayList<Integer> burstList) {
+	public PCB(String name, int id, int arrivalTime, int priority) {
 		super();
 		this.name = name;
 		this.id = id;
@@ -28,7 +29,6 @@ public class PCB {
 		this.priority = priority;
 		this.startTime = -1;
 		this.finishTime = -1;
-		this.cpuBurst = burstList.get(0);
 		if(burstList.size()>1)//if there's I/O set IOBurst, else ignore
 			this.IOBurst = burstList.get(1);
 	}
@@ -145,5 +145,21 @@ public class PCB {
 
 	public void setArrIndex(int arrIndex) {
 		this.arrIndex = arrIndex;
+	}
+
+	public int popBurstTimes() {
+		return BurstTimes.pop();
+	}
+
+	public void pushBurstTimes(int burst) {
+		BurstTimes.push(burst);
+	}
+	
+	public int peekBurstTimes() {
+		return BurstTimes.peek();
+	}
+	
+	public boolean isBurstTimesEmpty() {
+		return BurstTimes.isEmpty();
 	}
 } 
