@@ -9,8 +9,8 @@ public abstract class SchedulingAlgorithm {
 	protected ArrayList<PCB> cpuReadyQueue; // ready queue of ready processes CPU bound
 	protected ArrayList<PCB> ioReadyQueue;
 	protected ArrayList<PCB> finishedProcs; // list of terminated processes
-	protected PCB curCPUProcess; // current selected process by the scheduler
-	protected PCB curIOProcess;	//current selected process for I/O
+	protected PCB curCPUProcess = null; // current selected process by the scheduler
+	protected PCB curIOProcess = null;	//current selected process for I/O
 	protected int systemTime; // system time or simulation time steps
 	public static boolean play;
 	protected Device CPU1 = new Device("CPU");
@@ -26,23 +26,22 @@ public abstract class SchedulingAlgorithm {
 		this.gui = gui;
 	}
 
-	public void schedule() {
+	public boolean schedule() { //returns true if finished, false if not finished
 		// continue if play selected or wait for next button
 		if(!play) {
 			//wait until 
 		}
-		System.out.println("Scheduler: " + name);
+		//System.out.println("Scheduler: " + name);
 		
-		curCPUProcess = null;
-		curIOProcess = null;
-		
-		while(!allProcs.isEmpty()) {
+		//The schedule function is a singular step. calling it 'X' times will result in 'X' steps
+		if(!allProcs.isEmpty()) {
 			System.out.println("System time: " + systemTime);
 			boolean hasViewChanged = false;
 			for(PCB proc : allProcs) {
 				if(proc.getArrivalTime() == systemTime) {
 					cpuReadyQueue.add(proc);
 					hasViewChanged = true;
+					System.out.println("Added prooc: " + proc.getName());
 				}
 			}
 			
@@ -101,13 +100,26 @@ public abstract class SchedulingAlgorithm {
 			
 			if(curIOProcess != null)IO1.execute(curIOProcess, 1);
 			if(curCPUProcess != null)CPU1.execute(curCPUProcess, 1);
+			try {
+				Thread.sleep(1000);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 			systemTime++;
 			
-			
+			if(allProcs.isEmpty()) {
+				System.out.println("All processes terminated at system time " + systemTime );
+				print();
+				return true;
+			}
 		}
-		
-		System.out.println("All processes terminated at system time " + systemTime );
-		print();
+		else {
+			System.out.println("All processes terminated at system time " + systemTime );
+			print();
+			return true;
+		}
+		return false;
 	}
 
 	// Selects the next task using the appropriate scheduling algorithm
