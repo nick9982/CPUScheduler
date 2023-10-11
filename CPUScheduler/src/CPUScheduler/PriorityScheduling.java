@@ -5,8 +5,8 @@ import java.util.Collections;
 import java.util.List;
 
 public class PriorityScheduling extends SchedulingAlgorithm {
-      public PriorityScheduling (ArrayList<PCB> queue, GUI gui) {
-		super("Priority Scheduling", queue, gui);
+      public PriorityScheduling (ArrayList<PCB> queue, GUI gui, int quantum) {
+		super("Priority Scheduling", queue, gui, quantum);
 	}
 
 

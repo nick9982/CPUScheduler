@@ -16,24 +16,24 @@ public abstract class SchedulingAlgorithm {
 	protected Device CPU1 = new Device("CPU");
 	protected Device IO1 = new Device("IO");
 	protected GUI gui;
+	protected int quantum;
 
-	public SchedulingAlgorithm(String name, ArrayList<PCB> queue, GUI gui) {
+	public SchedulingAlgorithm(String name, ArrayList<PCB> queue, GUI gui, int quantum) {
 		this.name = name;
 		this.allProcs = queue;
 		this.cpuReadyQueue = new ArrayList<>();
 		this.ioReadyQueue =  new ArrayList<>();
 		this.finishedProcs = new ArrayList<>();
+		this.quantum = quantum;
 		this.gui = gui;
 	}
 
-	public boolean schedule() { //returns true if finished, false if not finished
-		// continue if play selected or wait for next button
-		if(!play) {
-			//wait until 
-		}
-		//System.out.println("Scheduler: " + name);
+	public boolean schedule() { //returns true if finished, false if not finished. Steps through scheduler loop 1 at a time
 		
 		//The schedule function is a singular step. calling it 'X' times will result in 'X' steps
+		boolean isRoundRobin = false;
+		if(quantum != -1) isRoundRobin = true;
+		
 		if(!allProcs.isEmpty()) {
 			System.out.println("System time: " + systemTime);
 			boolean hasViewChanged = false;
@@ -41,7 +41,6 @@ public abstract class SchedulingAlgorithm {
 				if(proc.getArrivalTime() == systemTime) {
 					cpuReadyQueue.add(proc);
 					hasViewChanged = true;
-					System.out.println("Added prooc: " + proc.getName());
 				}
 			}
 			
@@ -82,13 +81,25 @@ public abstract class SchedulingAlgorithm {
 				}
 			}
 			
-			if(!cpuReadyQueue.isEmpty() && curCPUProcess == null)
+			// if is round robin every quantum time we choose a new process
+			// if cpuReadyQueue is not empty and the cpu is idle it is also time to pick a new process
+			if(!cpuReadyQueue.isEmpty() && (curCPUProcess == null || isRoundRobin && systemTime % quantum == 0))
 			{
-				curCPUProcess = pickNextProcess();
-				cpuReadyQueue.remove(curCPUProcess);
+				if(isRoundRobin) {
+					PCB initialProcess = curCPUProcess;
+					curCPUProcess = pickNextProcess();
+					if(cpuReadyQueue.contains(curCPUProcess)) {// in round robin it may reselect the same process, thus the ready queue would not contain it
+						cpuReadyQueue.remove(curCPUProcess);
+						if(initialProcess != null) cpuReadyQueue.add(initialProcess);
+					}
+				}
+				else {
+					curCPUProcess = pickNextProcess();
+					cpuReadyQueue.remove(curCPUProcess);
+					if(curCPUProcess.getStartTime() == -1) curCPUProcess.setStartTime(systemTime);
+				}
 				gui.CPU1.setProcesses(new ArrayList<PCB>(Arrays.asList(curCPUProcess)));
 				gui.ReadyQueue.setProcesses(cpuReadyQueue);
-				if(curCPUProcess.getStartTime() == -1) curCPUProcess.setStartTime(systemTime);
 			}
 			
 			if(!ioReadyQueue.isEmpty() && curIOProcess == null) { // if there is something waiting in io ready queue and IO is not busy

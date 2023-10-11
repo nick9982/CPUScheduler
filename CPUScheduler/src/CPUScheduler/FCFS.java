@@ -3,8 +3,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class FCFS extends SchedulingAlgorithm {
-      public FCFS(ArrayList<PCB> queue, GUI gui) {
-		super("FCFS", queue, gui);
+      public FCFS(ArrayList<PCB> queue, GUI gui, int quantum) {
+		super("FCFS", queue, gui, quantum);
 	}
 
 

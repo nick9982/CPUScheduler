@@ -63,7 +63,7 @@ public class GUI implements ActionListener{
 		QuantumTimeLabel = new JLabel("Quantum:");
 		SpeedLabel = new JLabel("Speed:");
 		
-		String[] algorithms = {"FCFS", "Regular Priority", "Round Robin Priority"};
+		String[] algorithms = {"FCFS", "SJF", "PS", "RR"};
 		String[] speeds = {"1 fps", "2 fps", "3 fps", "4 fps", "5 fps", "6 fps", "7 fps", "8 fps", "9 fps", "10 fps"};
 		AlgorithmComboBox = new JComboBox<String>(algorithms);
 		
@@ -194,6 +194,11 @@ public class GUI implements ActionListener{
 		window.setVisible(true);
 	}
 	
+	public void setAlgComboBoxEditable() {
+		AlgorithmComboBox.setEditable(true);
+		AlgorithmComboBox.setEnabled(true);
+	}
+	
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		// TODO Auto-generated method stub
@@ -215,7 +220,9 @@ public class GUI implements ActionListener{
 						SchedLoop.NumberOfSteps = 0;
 					}
 					Scanner sc = new Scanner(new File("src/proc.txt"));
-					String alg = sc.nextLine().toUpperCase(); // read the scheduling algorithm
+					//String alg = sc.nextLine().toUpperCase(); // read the scheduling algorithm
+					String alg = (String)AlgorithmComboBox.getSelectedItem();
+					AlgorithmComboBox.setEnabled(false);
 					ArrayList<PCB> allProcs = new ArrayList<>();
 					int id = 0;
 					while(sc.hasNextLine()) {
@@ -231,20 +238,24 @@ public class GUI implements ActionListener{
 						allProcs.add(proc);
 					}
 					sc.close();
-					
+					int Quantum = -1;
 					SchedulingAlgorithm scheduler = null;
 					switch(alg) {
-					case "FCFS":
-						scheduler = new FCFS(allProcs, this); break;
-					case "SJF":
-						scheduler = new SJF(allProcs, this);
-						break;
-					case "PS":
-						scheduler = new PriorityScheduling(allProcs, this);
-						break;
+						case "FCFS":
+							scheduler = new FCFS(allProcs, this, Quantum); break;
+						case "SJF":
+							scheduler = new SJF(allProcs, this, Quantum);
+							break;
+						case "PS":
+							scheduler = new PriorityScheduling(allProcs, this, Quantum);
+							break;
+						case "RR":
+							Quantum = Integer.parseInt(QuantumTimeInput.getText());
+							scheduler = new RoundRobinPriorityScheduling(allProcs, this, Quantum);
+							break;
 					}
 					//scheduler.schedule();
-					SchedLoop = new SchedulingLoop(scheduler);
+					SchedLoop = new SchedulingLoop(scheduler, this);
 					SchedLoop.start();
 				} catch (FileNotFoundException e1) {
 					// TODO Auto-generated catch block
@@ -379,9 +390,11 @@ public class GUI implements ActionListener{
 		SchedulingAlgorithm scheduler;
 		private volatile boolean isPlaying = false, isFinished = false;
 		private volatile int NumberOfSteps = 0;
+		private volatile GUI gui;
 		
-		public SchedulingLoop(SchedulingAlgorithm sa) {
+		public SchedulingLoop(SchedulingAlgorithm sa, GUI gui) {
 			scheduler = sa;
+			this.gui = gui;
 		}
 		
 		@Override
@@ -397,6 +410,7 @@ public class GUI implements ActionListener{
 					if(isFinished) break;
 				}
 			}
+			gui.setAlgComboBoxEditable();
 		}
 		
 		public void setNumberOfSteps(int x) {
