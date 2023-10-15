@@ -1,6 +1,7 @@
 package CPUScheduler;
 
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
@@ -24,17 +25,47 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
 import javax.swing.JTextField;
+import javax.swing.JTextPane;
+import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingConstants;
 import javax.swing.border.Border;
 import javax.swing.filechooser.FileNameExtensionFilter;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.DefaultHighlighter;
+import javax.swing.text.DefaultStyledDocument;
+import javax.swing.text.Highlighter;
+import javax.swing.text.SimpleAttributeSet;
+import javax.swing.text.StyleConstants;
+import javax.swing.text.StyledDocument;
+import javax.swing.text.StyledEditorKit;
 
 public class GUI implements ActionListener{
+	private class Pair<K, V> {
+	    private K key;
+	    private V value;
+
+	    public Pair(K key, V value) {
+	        this.key = key;
+	        this.value = value;
+	    }
+
+	    public K getKey() {
+	        return key;
+	    }
+
+	    public V getValue() {
+	        return value;
+	    }
+	}
+	ArrayList<Pair<Integer, Integer>> HighlightCoords = new ArrayList<Pair<Integer, Integer>>(); 
+	ArrayList<Color> HighlightColors = new ArrayList<Color>();
 	private JButton ImportFile, PlayAndPause, Next;
 	private JLabel SelectAlgorithmsLabel, QuantumTimeLabel, SpeedLabel;
 	private JComboBox AlgorithmComboBox, SpeedComboBox;
 	private JTextField QuantumTimeInput;
-	private JEditorPane RealTimeResults;
+	private JTextArea RealTimeResults;
 	private JLabel SystemTime, Throughput, AvgTurnover, AvgWait;
 	private JFrame window;
 	private JScrollPane scroller;
@@ -43,8 +74,7 @@ public class GUI implements ActionListener{
 	public ArrayList<Integer> CPU1Procs = new ArrayList<Integer>();
 	public ArrayList<Integer> IODeviceProcs = new ArrayList<Integer>();*/
 	public Block ReadyQueue, WaitingQueue, CPU1, IO; // call the functions directly on the block interface from outside of GUI
-	private boolean isPlaying = false;
-	private int NumberOfSteps = 0; // number of times "Next" has been clicked
+	private int NumberOfSteps = 1; // number of times "Next" has been clicked
 	SchedulingLoop SchedLoop = null;
 	
 	public GUI() {
@@ -69,11 +99,11 @@ public class GUI implements ActionListener{
 		
 		SpeedComboBox = new JComboBox<String>(speeds);
 		QuantumTimeInput = new JTextField();
-		RealTimeResults = new JEditorPane();
+		RealTimeResults = new JTextArea();
 		RealTimeResults.setEditable(false);
-		RealTimeResults.setContentType("text/html");
 		scroller = new JScrollPane(RealTimeResults);
 		
+		Font ariel12 = new Font("Arial", Font.PLAIN, 12);
 		Font customFont = new Font("Arial", Font.PLAIN, 24);
 		SystemTime = new JLabel("System time: -");
 		SystemTime.setFont(customFont);
@@ -99,6 +129,12 @@ public class GUI implements ActionListener{
 		gbc.fill = GridBagConstraints.BOTH;
 		window.add(ImportFile, gbc);
 		
+		scroller.setPreferredSize(new Dimension(700, 500));
+		RealTimeResults.setMaximumSize(new Dimension(700, 500));
+		scroller.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
+		scroller.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+		
+		RealTimeResults.setFont(ariel12);
 		gbc.insets = new Insets(10, 10, 10, 10);
 		gbc.weightx = 0;
 		gbc.gridx = 1;
@@ -156,8 +192,10 @@ public class GUI implements ActionListener{
 		gbc.gridx = 4;
 		gbc.gridheight = 3;
 		gbc.gridwidth = 21;
+		gbc.weightx = 0;
 		window.add(scroller, gbc);
 
+		gbc.weightx = 1;
 		gbc.insets = new Insets(0, 30, 0, 0);
 		gbc.gridheight = 1;
 		gbc.weighty = 1;
@@ -193,6 +231,26 @@ public class GUI implements ActionListener{
 		Next.addActionListener(this);
 		window.setVisible(true);
 	}
+
+	public void SendMessage(String input, Color c) {
+		RealTimeResults.setText(RealTimeResults.getText() + "\n" + input);
+		Highlighter highlight = RealTimeResults.getHighlighter();
+        int lastLineStart = RealTimeResults.getText().lastIndexOf('\n');
+        int lastLineEnd = RealTimeResults.getText().length();
+		HighlightCoords.add(new Pair<Integer, Integer>(lastLineStart, lastLineEnd));
+		HighlightColors.add(c);
+		
+		for(int i = 0; i < HighlightCoords.size(); i++) {
+			int lineStart = HighlightCoords.get(i).key;
+			int lineEnd = HighlightCoords.get(i).value;
+			try {
+				highlight.addHighlight(lineStart, lineEnd, new DefaultHighlighter.DefaultHighlightPainter(HighlightColors.get(i)));
+			} catch (BadLocationException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+	}
 	
 	public void setAlgComboBoxEditable() {
 		AlgorithmComboBox.setEditable(true);
@@ -219,6 +277,7 @@ public class GUI implements ActionListener{
 						PlayAndPause.setText("⏵");
 						SchedLoop.NumberOfSteps = 0;
 					}
+					RealTimeResults.setText("Scenario file: " + chooser.getSelectedFile().toString());
 					Scanner sc = new Scanner(new File("src/proc.txt"));
 					//String alg = sc.nextLine().toUpperCase(); // read the scheduling algorithm
 					String alg = (String)AlgorithmComboBox.getSelectedItem();
@@ -255,6 +314,7 @@ public class GUI implements ActionListener{
 							break;
 					}
 					//scheduler.schedule();
+					
 					SchedLoop = new SchedulingLoop(scheduler, this);
 					SchedLoop.start();
 				} catch (FileNotFoundException e1) {
@@ -277,9 +337,14 @@ public class GUI implements ActionListener{
 		}
 		else if(e.getSource() == this.Next) {
 			//moves ahead one unit of time
-			this.NumberOfSteps++;
 			SchedLoop.setNumberOfSteps(this.NumberOfSteps);
 		}
+	}
+	
+	public int getSpeed() {
+		String SpeedCBValue = SpeedComboBox.getSelectedItem().toString();
+		if(SpeedCBValue == "10 fps") return 10;
+		return (int)SpeedCBValue.charAt(0) - 48;
 	}
 	
 	class Block extends JPanel{
