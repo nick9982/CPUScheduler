@@ -1,5 +1,6 @@
 package CPUScheduler;
 import java.util.List;
+import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -40,6 +41,7 @@ public abstract class SchedulingAlgorithm {
 			for(PCB proc : allProcs) {
 				if(proc.getArrivalTime() == systemTime) {
 					cpuReadyQueue.add(proc);
+					gui.SendMessage("New process: " + proc.getName() + " has been created at " + systemTime, Color.green);
 					hasViewChanged = true;
 				}
 			}
@@ -53,10 +55,12 @@ public abstract class SchedulingAlgorithm {
 					if(curCPUProcess.isBurstTimesEmpty()) {
 						curCPUProcess.setFinishTime(systemTime);
 						allProcs.remove(curCPUProcess);
+						gui.SendMessage(curCPUProcess.getName() + " has been completed by CPU at " + systemTime, Color.yellow);
 						finishedProcs.add(curCPUProcess);
 					}
 					else { // The cpu burst is done moving to io queue
 						ioReadyQueue.add(curCPUProcess);
+						gui.SendMessage(curCPUProcess.getName() + " has been moved from CPU to IO ready queue at " + systemTime, Color.LIGHT_GRAY);
 						gui.WaitingQueue.setProcesses(ioReadyQueue);
 					}
 					curCPUProcess = null;
@@ -70,10 +74,12 @@ public abstract class SchedulingAlgorithm {
 					if(curIOProcess.isBurstTimesEmpty()) { // io burst is done process is done
 						curIOProcess.setFinishTime(systemTime);
 						allProcs.remove(curIOProcess);
+						gui.SendMessage(curIOProcess.getName() + " has been completed by IO device at " + systemTime, Color.gray);
 						finishedProcs.add(curIOProcess);
 					}
 					else { // io burst is done, move to cpu ready queue
 						cpuReadyQueue.add(curIOProcess);
+						gui.SendMessage(curIOProcess.getName() + " has been moved from IO device to CPU ready queue at " + systemTime, Color.orange);
 						gui.ReadyQueue.setProcesses(cpuReadyQueue);
 					}
 					curIOProcess = null;
@@ -98,6 +104,7 @@ public abstract class SchedulingAlgorithm {
 					cpuReadyQueue.remove(curCPUProcess);
 					if(curCPUProcess.getStartTime() == -1) curCPUProcess.setStartTime(systemTime);
 				}
+				gui.SendMessage(curCPUProcess.getName() + " has been moved into the CPU at " + systemTime, Color.cyan);
 				gui.CPU1.setProcesses(new ArrayList<PCB>(Arrays.asList(curCPUProcess)));
 				gui.ReadyQueue.setProcesses(cpuReadyQueue);
 			}
@@ -107,23 +114,24 @@ public abstract class SchedulingAlgorithm {
 				ioReadyQueue.remove(curIOProcess);
 				gui.WaitingQueue.setProcesses(ioReadyQueue);
 				gui.IO.setProcesses(new ArrayList<PCB>(Arrays.asList(curIOProcess)));
+				gui.SendMessage(curIOProcess.getName() + " has been moved into the IO device at " + systemTime, Color.magenta);
 			}
 			
 			if(curIOProcess != null)IO1.execute(curIOProcess, 1);
 			if(curCPUProcess != null)CPU1.execute(curCPUProcess, 1);
 			try {
-				Thread.sleep(1000);
+				Thread.sleep(1000/gui.getSpeed());
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-			systemTime++;
 			
 			if(allProcs.isEmpty()) {
 				System.out.println("All processes terminated at system time " + systemTime );
 				print();
 				return true;
 			}
+			systemTime++;
 		}
 		else {
 			System.out.println("All processes terminated at system time " + systemTime );
