@@ -255,6 +255,8 @@ public class GUI implements ActionListener{
 	public void setAlgComboBoxEditable() {
 		AlgorithmComboBox.setEditable(true);
 		AlgorithmComboBox.setEnabled(true);
+		HighlightColors.clear();
+		HighlightCoords.clear();
 	}
 	
 	@Override
