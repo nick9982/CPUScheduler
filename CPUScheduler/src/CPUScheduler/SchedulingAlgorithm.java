@@ -31,6 +31,7 @@ public abstract class SchedulingAlgorithm {
 
 	public boolean schedule() { //returns true if finished, false if not finished. Steps through scheduler loop 1 at a time
 		
+		gui.setSystemTime(systemTime);
 		//The schedule function is a singular step. calling it 'X' times will result in 'X' steps
 		boolean isRoundRobin = false;
 		if(quantum != -1) isRoundRobin = true;
@@ -168,5 +169,23 @@ public abstract class SchedulingAlgorithm {
 				System.out.print(", ");
 		}
 		System.out.println("]");
+	}
+	public double calcTurnaround() {
+		int totalTime=0;
+		for(int i =0; i<this.finishedProcs.size();i++) {
+			totalTime+= finishedProcs.get(i).getFinishTime() - finishedProcs.get(i).getStartTime();
+		}
+		return totalTime/this.finishedProcs.size();
+	}
+	public double calcThroughput() {
+		return systemTime/this.finishedProcs.size();
+	}
+	
+	public double calcAvgWait() {
+		int totalTime=0;
+		for(int i =0; i<this.finishedProcs.size();i++) {
+			totalTime+= finishedProcs.get(i).getWaitingTime();
+		}
+		return totalTime/this.finishedProcs.size();
 	}
 }

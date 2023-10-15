@@ -231,6 +231,18 @@ public class GUI implements ActionListener{
 		Next.addActionListener(this);
 		window.setVisible(true);
 	}
+	public void setSystemTime(int sysTime) {
+		this.SystemTime.setText("System time: " + sysTime);
+	}
+	public void setAvgWait(double waitTime) {
+		this.AvgWait.setText("AVG Wait: "+waitTime);
+	}
+	public void setThroughput(double throughput) {
+		this.Throughput.setText("Throughput: 1/"+ throughput+"sec");
+	}
+	public void setAvgTurnaround(double turnaround) {
+		this.AvgTurnover.setText("AVG Turn: "+ turnaround);
+	}
 
 	public void SendMessage(String input, Color c) {
 		RealTimeResults.setText(RealTimeResults.getText() + "\n" + input);
@@ -451,6 +463,7 @@ public class GUI implements ActionListener{
 				}
 			}
 		}
+
 	}
 	
 	public class SchedulingLoop extends Thread {
@@ -477,6 +490,9 @@ public class GUI implements ActionListener{
 					if(isFinished) break;
 				}
 			}
+			gui.setAvgTurnaround(scheduler.calcTurnaround());
+			gui.setAvgWait(scheduler.calcAvgWait());
+			gui.setThroughput(scheduler.calcThroughput());
 			gui.setAlgComboBoxEditable();
 		}
 		
