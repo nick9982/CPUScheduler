@@ -401,7 +401,7 @@ public class GUI implements ActionListener{
 			int returnVal = chooser.showOpenDialog(null);
 			if(returnVal == JFileChooser.APPROVE_OPTION) {
 				File file = chooser.getSelectedFile();
-				
+				model.setRowCount(0);
 				//Process the file, it is text input.
 				try {
 					if(SchedLoop != null)
@@ -637,7 +637,9 @@ public class GUI implements ActionListener{
 			//gui.setAvgTurnaround(scheduler.calcTurnaround());
 			//gui.setAvgWait(scheduler.calcAvgWait());
 			//gui.setThroughput(scheduler.calcThroughput());
-			//gui.setAlgComboBoxEditable();
+			gui.setAlgComboBoxEditable();
+			PlayAndPause.setText("⏵");
+			isPlaying = false;
 		}
 		
 		public void setNumberOfSteps(int x) {

@@ -90,7 +90,7 @@ public abstract class SchedulingAlgorithm {
 						allProcs.remove(curIOProcess);
 						gui.SendMessage(curIOProcess.getName() + " has been completed by IO device at " + systemTime, Color.gray);
 						finishedProcs.add(curIOProcess);
-						gui.SetTableValue(systemTime, curCPUProcess, 6);
+						gui.SetTableValue(systemTime, curIOProcess, 6);
 					}
 					else { // io burst is done, move to cpu ready queue
 						cpuReadyQueue.add(curIOProcess);
