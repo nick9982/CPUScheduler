@@ -100,7 +100,6 @@ public class GUI implements ActionListener{
 		model.addColumn("Start Time");
 		model.addColumn("Finish Time");
 		model.addColumn("Wait Time");
-		model.addColumn("Wait IO Time");
 		model.addColumn("Status");
 		inputData = new JTable(model);
 		TableScroller = new JScrollPane(inputData);
@@ -115,7 +114,6 @@ public class GUI implements ActionListener{
 		inputData.getColumnModel().getColumn(6).setMinWidth(100);
 		inputData.getColumnModel().getColumn(7).setMinWidth(100);
 		inputData.getColumnModel().getColumn(8).setMinWidth(100);
-		inputData.getColumnModel().getColumn(9).setMinWidth(100);
 		//inputData.getColumnModel().getColumn(10).setPreferredWidth(20);
 		ImportFile = new JButton("Import File");
 		PlayAndPause = new JButton("⏵"); //⏸
@@ -314,6 +312,11 @@ public class GUI implements ActionListener{
 		model.addRow(row);
 	}
 	
+	public Object GetDataFromTable(PCB proc, int y) {
+		int x = proc.getId();
+		return model.getValueAt(x, y);
+	}
+	
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		// TODO Auto-generated method stub
@@ -349,9 +352,8 @@ public class GUI implements ActionListener{
 						dataRow[0] = name;
 						int arrivalTime = Integer.parseInt(arr[1]);
 						dataRow[1] = id;
-						dataRow[2] = name;
 						int priority = Integer.parseInt(arr [2]);
-						dataRow[3] = priority;
+						dataRow[2] = priority;
 						PCB proc = new PCB(name, id++, arrivalTime, priority);
 						for(int i = arr.length-1; i >= 3; i--) {
 							proc.pushBurstTimes(Integer.parseInt(arr[i]));
@@ -362,13 +364,12 @@ public class GUI implements ActionListener{
 							if(i%2 == 1) cpuBursts += arr[i];
 							else ioBursts += arr[i];
 						}
-						dataRow[4] = cpuBursts;
-						dataRow[5] = ioBursts;
+						dataRow[3] = cpuBursts;
+						dataRow[4] = ioBursts;
+						dataRow[5] = 0;
 						dataRow[6] = 0;
 						dataRow[7] = 0;
-						dataRow[8] = 0;
-						dataRow[9] = 0;
-						dataRow[10] = 0;
+						dataRow[8] = "waiting";
 						model.addRow(dataRow);
 						
 						allProcs.add(proc);
@@ -422,6 +423,12 @@ public class GUI implements ActionListener{
 		String SpeedCBValue = SpeedComboBox.getSelectedItem().toString();
 		if(SpeedCBValue == "10 fps") return 10;
 		return (int)SpeedCBValue.charAt(0) - 48;
+	}
+
+	
+	public void SetTableValue(Object value, PCB proc, int y) {
+		int x = proc.getId();
+		model.setValueAt(value, x, y);
 	}
 	
 	class Block extends JPanel{

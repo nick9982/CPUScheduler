@@ -15,11 +15,4 @@ public class PriorityScheduling extends SchedulingAlgorithm {
     	  Collections.sort(cpuReadyQueue, (o1,o2) -> o1.getPriority() - o2.getPriority());
     	  return cpuReadyQueue.get(0);
       }
-
-
-	@Override
-	public PCB RRPickNext(Device d) {
-		// TODO Auto-generated method stub
-		return null;
-	}
 }
