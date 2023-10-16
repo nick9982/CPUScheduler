@@ -31,7 +31,6 @@ public abstract class SchedulingAlgorithm {
 
 	public boolean schedule() { //returns true if finished, false if not finished. Steps through scheduler loop 1 at a time
 		
-		gui.setSystemTime(systemTime);
 		//The schedule function is a singular step. calling it 'X' times will result in 'X' steps
 		boolean isRoundRobin = false;
 		if(quantum != -1) isRoundRobin = true;
@@ -44,6 +43,7 @@ public abstract class SchedulingAlgorithm {
 					cpuReadyQueue.add(proc);
 					gui.SendMessage("New process: " + proc.getName() + " has been created at " + systemTime, Color.green);
 					hasViewChanged = true;
+					gui.SetTableValue("Arrived", proc, 8);
 				}
 			}
 			
@@ -69,6 +69,7 @@ public abstract class SchedulingAlgorithm {
 						allProcs.remove(curCPUProcess);
 						gui.SendMessage(curCPUProcess.getName() + " has been completed by CPU at " + systemTime, Color.yellow);
 						finishedProcs.add(curCPUProcess);
+						gui.SetTableValue("Finished", curCPUProcess, 8);
 						gui.SetTableValue(systemTime, curCPUProcess, 6);
 					}
 					else { // The cpu burst is done moving to io queue
@@ -114,6 +115,7 @@ public abstract class SchedulingAlgorithm {
 					}
 					if(curCPUProcess.getStartTime() == -1) {
 						curCPUProcess.setStartTime(systemTime);
+						gui.SetTableValue("Started", curCPUProcess, 8);
 						gui.SetTableValue(systemTime, curCPUProcess, 5);
 					}
 				}
@@ -122,6 +124,7 @@ public abstract class SchedulingAlgorithm {
 					cpuReadyQueue.remove(curCPUProcess);
 					if(curCPUProcess.getStartTime() == -1) {
 						curCPUProcess.setStartTime(systemTime);
+						gui.SetTableValue("Started", curCPUProcess, 8);
 						gui.SetTableValue(systemTime, curCPUProcess, 5);
 					}
 				}
@@ -152,7 +155,12 @@ public abstract class SchedulingAlgorithm {
 				print();
 				return true;
 			}
+			gui.setThroughPut(finishedProcs.size(), systemTime);
+			gui.setSystemTimeLabel(systemTime);
+			gui.SetAvgTurnaround(calcTurnaround());
+			gui.SetAvgWait(calcAvgWait());
 			systemTime++;
+			
 		}
 		else {
 			System.out.println("All processes terminated at system time " + systemTime );
@@ -192,6 +200,7 @@ public abstract class SchedulingAlgorithm {
 	}
 	public double calcTurnaround() {
 		int totalTime=0;
+		if(this.finishedProcs.size() == 0) return 0;
 		for(int i =0; i<this.finishedProcs.size();i++) {
 			totalTime+= finishedProcs.get(i).getFinishTime() - finishedProcs.get(i).getStartTime();
 		}
@@ -202,10 +211,20 @@ public abstract class SchedulingAlgorithm {
 	}
 	
 	public double calcAvgWait() {
-		int totalTime=0;
-		for(int i =0; i<this.finishedProcs.size();i++) {
-			totalTime+= finishedProcs.get(i).getWaitingTime();
+		int sum=0;
+		int cnt = 0;
+		
+		for(PCB proc: finishedProcs) {
+			int wait = (int)gui.GetDataFromTable(proc, 7);
+			sum += wait;
+			cnt++;
 		}
-		return totalTime/this.finishedProcs.size();
+		
+		for(PCB proc: allProcs) {
+			int wait = (int)gui.GetDataFromTable(proc, 7);
+			sum += wait;
+			cnt++;
+		}
+		return (double)sum/cnt;
 	}
 }

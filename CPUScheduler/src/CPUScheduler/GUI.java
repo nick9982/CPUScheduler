@@ -237,7 +237,7 @@ public class GUI implements ActionListener{
 		ReadyQueue.setProcesses(new ArrayList<PCB>());
 		window.add(ReadyQueue, gbc);
 		
-		gbc.insets = new Insets(0, 6, 0, 0);
+		gbc.insets = new Insets(0, 45, 0, 0);
 		gbc.gridx = 3;
 		gbc.gridwidth=1;
 		CPU1 = new Block(Color.magenta, 100, 100, "CPU1", true, true);
@@ -251,7 +251,7 @@ public class GUI implements ActionListener{
 		IO.setProcesses(new ArrayList<PCB>());
 		window.add(IO, gbc);
 
-		gbc.insets = new Insets(-30, -134, 0, 0);
+		gbc.insets = new Insets(-30, -100, 0, 0);
 		gbc.gridx = 1;
 		WaitingQueue = new Block(Color.cyan, 740, 100, "Waiting Queue", true, false);
 		WaitingQueue.setProcesses(new ArrayList<PCB>());
@@ -268,6 +268,80 @@ public class GUI implements ActionListener{
 		Next.addActionListener(this);
 		window.setVisible(true);
 	}
+	
+	public void setSystemTimeLabel(int systemTime) {
+		String sysTimeStr = systemTime + "";
+		int strLength = sysTimeStr.length();
+		for(int i = strLength-1; i < 6; i++) {
+			sysTimeStr += " ";
+		}
+		
+		SystemTime.setText("System Time: " + sysTimeStr);
+	}
+	
+	public void setThroughPut(int finishedProcs, int systemTime) {
+		if(systemTime == 0) Throughput.setText("Throughput: 0.000   ");
+		double throughPut = (double)finishedProcs/systemTime;
+		String strThroughput = doubleToFixedSizeString(throughPut);
+		Throughput.setText("Throughput: " + strThroughput);
+	}
+	
+	public void SetAvgTurnaround(double turnAround) {
+		String strTurnAround = doubleToFixedSizeString(turnAround);
+		AvgTurnover.setText("AVG Turn: " + strTurnAround);  
+	}
+	
+	public void SetAvgWait(double wait) {
+		String strWait = doubleToFixedSizeString(wait);
+		AvgWait.setText("AVG Wait: " + strWait);
+	}
+	
+	private String doubleToFixedSizeString(double inp) {
+	    String formattedValue = String.format("%.5f", inp);
+
+	    formattedValue = formattedValue.replaceAll("0*$", "");
+	    formattedValue = formattedValue.replaceAll("\\.$", "");
+	    String arr[] = formattedValue.split("\\.");
+
+	    if(formattedValue.length() > 8) {
+		    if(arr.length == 1 || arr[0].length() > 7) {
+		    	Throughput.setText("Throughput: " + arr[0]);
+		    	formattedValue = arr[0];
+		    }
+		    else {
+		        formattedValue = formattedValue.substring(0, 8);
+		    }
+	    }
+	    
+	    if(arr.length == 2) {
+	    	for(int i = formattedValue.length()-1; i < 8; i++) {
+	    		formattedValue += " ";
+	    	}
+	    }
+	    else {
+	    	if(formattedValue.length() == 7) {
+	    		formattedValue += " ";
+	    	} else {
+		    	int cnt = 0;
+		    	for(int i = formattedValue.length()-1; i < 8; i++) {
+		    		if(cnt == 0) {
+		    			formattedValue += ".";
+		    		}
+		    		else if(cnt < 3) {
+		    			formattedValue += "0";
+		    		}
+		    		else {
+		    			formattedValue += " ";
+		    		}
+		    		cnt++;
+		    	}
+	    	}
+	    }
+	    return formattedValue;
+	}
+	
+	//public void set
+	
 	public void setSystemTime(int sysTime) {
 		this.SystemTime.setText("System time: " + sysTime);
 	}
@@ -338,7 +412,7 @@ public class GUI implements ActionListener{
 						SchedLoop.NumberOfSteps = 0;
 					}
 					RealTimeResults.setText("Scenario file: " + chooser.getSelectedFile().toString());
-					Scanner sc = new Scanner(new File("src/proc.txt"));
+					Scanner sc = new Scanner(file);
 					//String alg = sc.nextLine().toUpperCase(); // read the scheduling algorithm
 					String alg = (String)AlgorithmComboBox.getSelectedItem();
 					AlgorithmComboBox.setEnabled(false);
@@ -369,7 +443,7 @@ public class GUI implements ActionListener{
 						dataRow[5] = 0;
 						dataRow[6] = 0;
 						dataRow[7] = 0;
-						dataRow[8] = "waiting";
+						dataRow[8] = "-";
 						model.addRow(dataRow);
 						
 						allProcs.add(proc);
@@ -560,10 +634,10 @@ public class GUI implements ActionListener{
 					if(isFinished) break;
 				}
 			}
-			gui.setAvgTurnaround(scheduler.calcTurnaround());
-			gui.setAvgWait(scheduler.calcAvgWait());
-			gui.setThroughput(scheduler.calcThroughput());
-			gui.setAlgComboBoxEditable();
+			//gui.setAvgTurnaround(scheduler.calcTurnaround());
+			//gui.setAvgWait(scheduler.calcAvgWait());
+			//gui.setThroughput(scheduler.calcThroughput());
+			//gui.setAlgComboBoxEditable();
 		}
 		
 		public void setNumberOfSteps(int x) {
