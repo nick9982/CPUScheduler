@@ -1,6 +1,7 @@
 package CPUScheduler;
 
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics;
@@ -25,6 +26,7 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JTable;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.JTextPane;
@@ -32,6 +34,7 @@ import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingConstants;
 import javax.swing.border.Border;
 import javax.swing.filechooser.FileNameExtensionFilter;
+import javax.swing.table.DefaultTableModel;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultHighlighter;
 import javax.swing.text.DefaultStyledDocument;
@@ -69,6 +72,7 @@ public class GUI implements ActionListener{
 	private JLabel SystemTime, Throughput, AvgTurnover, AvgWait;
 	private JFrame window;
 	private JScrollPane scroller;
+	private JPanel gridContainer;
 	/*public ArrayList<Integer> CPUReadyQueueProcs = new ArrayList<Integer>();
 	public ArrayList<Integer> IOReadyQueueProcs = new ArrayList<Integer>();
 	public ArrayList<Integer> CPU1Procs = new ArrayList<Integer>();
@@ -76,15 +80,43 @@ public class GUI implements ActionListener{
 	public Block ReadyQueue, WaitingQueue, CPU1, IO; // call the functions directly on the block interface from outside of GUI
 	private int NumberOfSteps = 1; // number of times "Next" has been clicked
 	SchedulingLoop SchedLoop = null;
+	private JTable inputData;
+	private DefaultTableModel model = new DefaultTableModel();
+	private JScrollPane TableScroller;
 	
 	public GUI() {
 		window = new JFrame("CPU Scheduler");
 		window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		window.setSize(1500, 400);
+		window.setSize(1500, 600);
 		window.setLayout(new GridBagLayout());
 		window.setResizable(false);
 		window.setLocationRelativeTo(null);
 		
+		model.addColumn("Name");
+		model.addColumn("ID");
+		model.addColumn("Priority");
+		model.addColumn("CPU Bursts");
+		model.addColumn("IO Bursts");
+		model.addColumn("Start Time");
+		model.addColumn("Finish Time");
+		model.addColumn("Wait Time");
+		model.addColumn("Wait IO Time");
+		model.addColumn("Status");
+		inputData = new JTable(model);
+		TableScroller = new JScrollPane(inputData);
+		
+		//inputData.setSize(new Dimension());
+		inputData.getColumnModel().getColumn(0).setMinWidth(100);
+		inputData.getColumnModel().getColumn(1).setMinWidth(100);
+		inputData.getColumnModel().getColumn(2).setMinWidth(100);
+		inputData.getColumnModel().getColumn(3).setMinWidth(100);
+		inputData.getColumnModel().getColumn(4).setMinWidth(100);
+		inputData.getColumnModel().getColumn(5).setMinWidth(100);
+		inputData.getColumnModel().getColumn(6).setMinWidth(100);
+		inputData.getColumnModel().getColumn(7).setMinWidth(100);
+		inputData.getColumnModel().getColumn(8).setMinWidth(100);
+		inputData.getColumnModel().getColumn(9).setMinWidth(100);
+		//inputData.getColumnModel().getColumn(10).setPreferredWidth(20);
 		ImportFile = new JButton("Import File");
 		PlayAndPause = new JButton("⏵"); //⏸
 		Next = new JButton("Next");
@@ -104,17 +136,17 @@ public class GUI implements ActionListener{
 		scroller = new JScrollPane(RealTimeResults);
 		
 		Font ariel12 = new Font("Arial", Font.PLAIN, 12);
-		Font customFont = new Font("Arial", Font.PLAIN, 24);
-		SystemTime = new JLabel("System time: -");
+		Font customFont = new Font("Arial", Font.PLAIN, 15);
+		SystemTime = new JLabel("System time: 0    ");
 		SystemTime.setFont(customFont);
 		SystemTime.setForeground(Color.RED);
-		Throughput = new JLabel("Throughput: -");
+		Throughput = new JLabel("Throughput: 0.000   ");
 		Throughput.setForeground(Color.RED);
 		Throughput.setFont(customFont);
-		AvgTurnover = new JLabel("AVG Turn: -");
+		AvgTurnover = new JLabel("AVG Turn: 0.000   ");
 		AvgTurnover.setForeground(Color.RED);
 		AvgTurnover.setFont(customFont);
-		AvgWait = new JLabel("AVG Wait: -");
+		AvgWait = new JLabel("AVG Wait: 0.000   ");
 		AvgWait.setForeground(Color.RED);
 		AvgWait.setFont(customFont);
 		
@@ -122,7 +154,7 @@ public class GUI implements ActionListener{
 		gbc.insets = new Insets(10, 28, 10, 10);
 		gbc.gridx = 0;
 		gbc.gridy = 0;
-		//gbc.gridwidth = 3;
+		gbc.gridwidth = 1;
 		gbc.gridheight = 1;
 		gbc.weightx = 1;
 		gbc.weighty = 0.02;
@@ -175,8 +207,9 @@ public class GUI implements ActionListener{
 		gbc.insets = new Insets(0, 28, 10, 0);
 		gbc.gridy = 1;
 		gbc.weighty = 0.1;
-		gbc.weightx = 1;
+		gbc.weightx = 0;
 		gbc.gridx = 0;
+		//gbc.anchor = GridBagConstraints.WEST;
 		window.add(SystemTime, gbc);
 		
 		gbc.gridx = 1;
@@ -188,7 +221,7 @@ public class GUI implements ActionListener{
 		gbc.gridx = 3;
 		window.add(AvgWait, gbc);
 		
-		gbc.insets = new Insets(0, -60, 20, 20);
+		gbc.insets = new Insets(0, -60, 60, 20);
 		gbc.gridx = 4;
 		gbc.gridheight = 3;
 		gbc.gridwidth = 21;
@@ -225,6 +258,12 @@ public class GUI implements ActionListener{
 		WaitingQueue = new Block(Color.cyan, 740, 100, "Waiting Queue", true, false);
 		WaitingQueue.setProcesses(new ArrayList<PCB>());
 		window.add(WaitingQueue, gbc);
+		
+		gbc.insets = new Insets(0, 30, 30, 30);
+		gbc.gridy = 4;
+		gbc.gridx = 0;
+		gbc.gridwidth = 25;
+		window.add(TableScroller, gbc);
 		
 		ImportFile.addActionListener(this);
 		PlayAndPause.addActionListener(this);
@@ -271,6 +310,10 @@ public class GUI implements ActionListener{
 		HighlightCoords.clear();
 	}
 	
+	public void addRowToTable(Object row[]) {
+		model.addRow(row);
+	}
+	
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		// TODO Auto-generated method stub
@@ -301,13 +344,33 @@ public class GUI implements ActionListener{
 					while(sc.hasNextLine()) {
 						String line = sc.nextLine();
 						String[] arr = line.split(",\\s*");
+						Object dataRow[] = new Object[11];
 						String name = arr[0];
+						dataRow[0] = name;
 						int arrivalTime = Integer.parseInt(arr[1]);
+						dataRow[1] = id;
+						dataRow[2] = name;
 						int priority = Integer.parseInt(arr [2]);
+						dataRow[3] = priority;
 						PCB proc = new PCB(name, id++, arrivalTime, priority);
 						for(int i = arr.length-1; i >= 3; i--) {
 							proc.pushBurstTimes(Integer.parseInt(arr[i]));
 						}
+						String cpuBursts = "";
+						String ioBursts = "";
+						for(int i = 3; i < arr.length; i++) {
+							if(i%2 == 1) cpuBursts += arr[i];
+							else ioBursts += arr[i];
+						}
+						dataRow[4] = cpuBursts;
+						dataRow[5] = ioBursts;
+						dataRow[6] = 0;
+						dataRow[7] = 0;
+						dataRow[8] = 0;
+						dataRow[9] = 0;
+						dataRow[10] = 0;
+						model.addRow(dataRow);
+						
 						allProcs.add(proc);
 					}
 					sc.close();
