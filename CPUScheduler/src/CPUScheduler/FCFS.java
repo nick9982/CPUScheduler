@@ -12,4 +12,11 @@ public class FCFS extends SchedulingAlgorithm {
 		// TODO Auto-generated method stub
     	  return cpuReadyQueue.get(0);
       }
+
+
+	@Override
+	public PCB RRPickNext(Device d) {
+		// TODO Auto-generated method stub
+		return null;
+	}
 }
